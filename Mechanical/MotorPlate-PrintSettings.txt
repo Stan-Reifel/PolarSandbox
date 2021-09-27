@@ -1,0 +1,21 @@
+
+Printed using Atomic PetG-CF:
+
+Layer height		0.20mm
+Perimeter:		4
+Top layers:		8
+Bottom layers:		8
+
+Fill density:		25%
+Fill pattern:		Grid
+
+Generate support mat: 	[x]
+Contact Z distance:	0.2  (last time tried 0.1 and it was hard to remove the interface layer)
+Pattern: 		Rectilinear grid
+Interface layers:	3  (last time used the default of 2)
+Don't support bridges:	[ ]
+
+
+
+
+

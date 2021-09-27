@@ -1,0 +1,16 @@
+
+Printed using Priline PetG-CF:
+(I think the original arm was printed using AtomicPetG-CF)
+
+Layer height	0.20mm
+Perimeter:	4
+Top layers:	4
+Bottom layers:	3
+Infill:		Grid @ 0%
+
+Consider print this with a second part on the print bed
+as tall as the magnet disk.
+
+
+
+

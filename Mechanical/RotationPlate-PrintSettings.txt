@@ -1,0 +1,12 @@
+
+Printed using Atomic PetG-CF:
+
+Layer height	0.20mm
+Perimeter:	4
+Top layers:	8
+Bottom layers:	8
+Infill:		Grid @ 30%
+Supports:	Off
+
+
+

@@ -1,0 +1,19 @@
+
+Print Settings For:  StackTop_PerimeterSection
+----------------------------------------------
+
+
+Printed using Priline PC-CF:
+
+Layer height	0.20mm
+Perimeter:	3
+Top layers:	3
+Bottom layers:	3
+Infill:		Grid @ 20%
+Supports:	Off
+
+Advanced:
+  Elephant foot: 0.5
+
+
+

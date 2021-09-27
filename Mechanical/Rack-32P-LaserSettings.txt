@@ -1,0 +1,11 @@
+
+Material 1/4" Acrylic:
+
+Kirf compensation: 	0.005"
+Power:			70
+Speed:			0.3
+Frequency:		5000
+
+
+
+

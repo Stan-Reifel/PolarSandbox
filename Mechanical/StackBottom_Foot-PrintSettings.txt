@@ -1,0 +1,17 @@
+
+Print Settings For:  StackBottom_Foot
+-------------------------------------
+
+
+Printed using Priline PC-CF:
+
+Layer height	0.20mm
+Perimeter:	3
+Top layers:	3
+Bottom layers:	3
+Infill:		Grid @ 20%
+Supports:	Off
+
+Elephant foot:	0.4
+
+
