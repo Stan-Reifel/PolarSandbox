@@ -29,6 +29,7 @@ extern int ballSpeedMMperSec;
 //
 // forward function declarations
 //
+void drawForever(int startingBlockNumber);
 void addXYWaypoint(float X, float Y, float speed);
 float SinD(float ThetaInDegrees);
 float CosD(float ThetaInDegrees);
@@ -65,10 +66,202 @@ static float xySizeScaler;
 static float endTheta;
 
 
+
+// ---------------------------------------------------------------------------------
+//                                 Run Forever Sequence 
+// ---------------------------------------------------------------------------------
+
+//
+// sequence the drawings such that they repeat forever or until the user presses the "cancel" button, before calling  
+//    Enter:  startingBlockNumber = block number to begin with, set to 0 to start at the beginning
+//
+void runDrawingsForever(int startingBlockNumber)
+{ 
+  digitalWrite(MOTOR_ENABLE_PIN, LOW);                            // enable the steppers
+  startMeasuringRunningTime();                                    // start the clock for measuring total runtime
+ 
+  drawForever(startingBlockNumber);
+
+  stopMeasuringRunningTime();                                     // stop recording the running time
+  saveRunningTimeInEEPROM();
+  digitalWrite(MOTOR_ENABLE_PIN, HIGH);                           // disable the steppers
+}
+
+
+
+//
+// sequence the drawings such that they repeat forever or until the user presses the "cancel" button, before calling  
+// this the motors must be enabled and the runtime clock started
+//    Enter:  startingBlockNumber = block number to begin with, set to 0 to start at the beginning
+//
+void drawForever(int startingBlockNumber)
+{ 
+  int blockNumber;
+
+  //
+  // always start with a sprial, this will find the ball if not currently attached
+  //
+  if (drawSpiral(SPIRAL_OUT) == CANCEL_DRAWING)
+    return;
+
+  //
+  // loop forever, running the next block in the sequence
+  //
+  blockNumber = startingBlockNumber;
+  while(true)
+  {
+    //
+    // draw each block in order, note that blocks end with a drawing that fills the table
+    //
+    switch(blockNumber)
+    {
+      case 0:
+      {
+        if (drawStarFlower(SPIRAL_IN) == CANCEL_DRAWING)              // This looks good before hexagons
+          return;
+       
+        if (drawHexagons(SPIRAL_OUT) == CANCEL_DRAWING)
+          return;
+           
+        if (drawClovers(SPIRAL_IN) == CANCEL_DRAWING)
+          return;
+    
+        if (drawSquaresClipped(SPIRAL_OUT) == CANCEL_DRAWING)
+          return;
+        break;
+      }
+      
+      case 1:
+      {
+        if (drawPetals(SPIRAL_IN) == CANCEL_DRAWING)                  // This has no twist
+          return;
+    
+        if (drawScalopsTwistedClipped(SPIRAL_OUT) == CANCEL_DRAWING)  // This is a good one
+          return;
+        break;
+      }
+     
+      case 2:
+      {
+        if (drawMoveSandInward() == CANCEL_DRAWING)                   // From OUT to OUT, clean up outside perimeter, move a bit of the sand inward
+          return;                                                     // this drawing has the same appearance as "Sun Rays"
+    
+        if (drawSpiderWeb(SPIRAL_IN) == CANCEL_DRAWING)               // this erases everything under it
+          return;
+        break;
+      }
+    
+      case 3:
+      {
+        if (drawStarsTwisted(SPIRAL_OUT) == CANCEL_DRAWING)
+          return;
+    
+        if (drawHotSun(START_OUT_END_OUT) == CANCEL_DRAWING)          // From OUT to OUT, this erases everything under it
+          return;
+                                                                      
+        if (drawNarrowingSpirograph() == CANCEL_DRAWING)              // From OUT to OUT, looks good after drawHotSun()
+          return;
+        break;
+      }
+    
+      case 4:
+      {
+        if (drawLittleCloversTwisted(SPIRAL_IN) == CANCEL_DRAWING)    // this erases everything under it
+          return;
+    
+        if (drawPsycho(START_IN_END_IN) == CANCEL_DRAWING)            // From IN to IN
+          return;
+        break;
+      }
+    
+      case 5:
+      {
+        if (drawCloversSuperTwist(SPIRAL_OUT) == CANCEL_DRAWING)      // Good one, looks good after after a radial drawing         
+          return;
+    
+        if (drawSpiralHD(SPIRAL_IN) == CANCEL_DRAWING)                // From OUT to IN, this erases everything under it
+          return;
+        break;
+      }
+    
+      case 6:
+      {
+        if (drawSpiralRays(START_IN_END_IN) == CANCEL_DRAWING)
+          return;
+    
+        if (drawHearts() == CANCEL_DRAWING)                           // From IN to OUT 
+          return;
+    
+        if (drawPerimeterSkirt() == CANCEL_DRAWING)                   // From OUT to OUT 
+          return;
+    
+        if (drawScalopsTripleTwistClipped(SPIRAL_IN) == CANCEL_DRAWING)
+          return;
+        break;
+      }
+    
+      case 7:
+      {  
+        if (drawTrianglesClipped(SPIRAL_OUT) == CANCEL_DRAWING)       // Better to spiral out, looks great clipped
+          return;
+    
+        if (drawLoops() == CANCEL_DRAWING)                            // From OUT to OUT, OK but not great to watch, looks interesting when done
+          return;
+    
+        if (drawLittleClovers(SPIRAL_IN) == CANCEL_DRAWING) 
+          return;
+        break;
+      }
+   
+      case 8:
+      {                    
+        if (drawCloversTwisted(SPIRAL_OUT) == CANCEL_DRAWING)
+          return;
+    
+        if (drawStars() == CANCEL_DRAWING)                            // From OUT to IN, starting with a polygon, erases everything under
+          return;
+    
+        if (drawSpiral(SPIRAL_OUT) == CANCEL_DRAWING)                 // From IN to OUT, Spiral needed for drawSixBlade()
+          return;
+        if (drawSixBlade() == CANCEL_DRAWING)                         // From OUT to OUT, this one is just OK
+          return;
+       
+        if (drawCloversTripleTwistClipped(SPIRAL_IN) == CANCEL_DRAWING) // good, looks similar to, but different from drawScalopsTripleTwistClipped()
+          return;
+       break;
+      }
+   
+      case 9:
+      {                    
+        if (drawPolygonSuperTwist(SPIRAL_OUT) == CANCEL_DRAWING)      // this is good in or out, may want to add clipping
+          return;
+           
+        if (drawLooseSpiral(SPIRAL_IN) == CANCEL_DRAWING)             // Return to the beginning
+          return;
+       break;
+      }
+
+      default:
+      {
+        if (drawSpiral(SPIRAL_OUT) == CANCEL_DRAWING)
+          return;
+        blockNumber = -1;                                               // all blocks completed, start over at the beginning
+        break;
+      }
+    }
+    
+    //
+    // after completing a block, save the total runtime, then advance to the next block 
+    //
+    saveRunningTimeInEEPROM();
+    blockNumber++;
+  }
+}
+
+
 // ---------------------------------------------------------------------------------
 //                                       Spiral 
 // ---------------------------------------------------------------------------------
-
 
 //
 // polar function: Spiral
@@ -97,7 +290,7 @@ int drawSpiral(boolean direction)
   // set parameters for this drawing
   //
   spiralPitchMM = 14;
-  float startingTheta = 180;
+  float startingTheta = 360;
   float endingTheta = 7148;
   float endpointSpacingMM = 2;
   float endpointSpacingTolerance = 0.2;
@@ -299,7 +492,8 @@ int drawTrianglesClipped(boolean direction)
   spiralPitchMM = 18;
   numberSides = 3;
   twistAngle = 3;
-  float startingTheta = 380;
+//float startingTheta = 380;
+  float startingTheta = 470;
   float endingTheta = 11340;
   float endpointSpacingMM = 2;
   float endpointSpacingTolerance = 0.2;
@@ -335,7 +529,7 @@ int drawSquares(boolean direction)
   spiralPitchMM = 17;
   numberSides = 4;
   twistAngle = 0;
-  float startingTheta = 180;
+  float startingTheta = 400;
   float endingTheta = 5894;
   float endpointSpacingMM = 2;
   float endpointSpacingTolerance = 0.2;
@@ -369,7 +563,7 @@ int drawSquaresClipped(boolean direction)
   spiralPitchMM = 17;
   numberSides = 4;
   twistAngle = 0;
-  float startingTheta = 200;
+  float startingTheta = 360;
   float endingTheta = 8220 + 225;       // Added 225 to clean out the outer perimeter
   float endpointSpacingMM = 2;
   float endpointSpacingTolerance = 0.2;
@@ -401,14 +595,15 @@ int drawHexagons(boolean direction)
   //
   // set parameters for this drawing
   //
-  spiralPitchMM = 17;
+  spiralPitchMM = 9;
   numberSides = 6;
   twistAngle = 0;
-  float startingTheta = 270;
-  float endingTheta = 5909-54;        // -54 added to interface with next plot
+  float startingTheta = 750;
+  float endingTheta = 11129-52;           // -52 added to interface with next plot
   float endpointSpacingMM = 2;
   float endpointSpacingTolerance = 0.2;
   boolean clipPlotToSandboxRadiusFlag = false;
+
 
   //
   // draw the figure
@@ -823,7 +1018,7 @@ int drawStarFlower(boolean direction)
   amplitudeOffset = -10;
   amplitudeScalerWithRotations = 15;
   twistAngle = 0;
-  float startingTheta = 300;
+  float startingTheta = 400;
   float endingTheta = 5039;
   float endpointSpacingMM = 2;
   float endpointSpacingTolerance = 0.2;

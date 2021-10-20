@@ -15,6 +15,7 @@ extern float finalThetaFromLastPlot;
 //
 // function declarations
 //
+extern void runDrawingsForever(int startingBlockNumber);
 extern int drawSpiral(boolean direction);
 extern int drawSpiralHD(boolean direction);
 extern int drawLooseSpiral(boolean direction);

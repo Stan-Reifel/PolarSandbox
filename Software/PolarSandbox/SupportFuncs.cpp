@@ -832,7 +832,7 @@ void homeAllAxes(void)
   theta = ANGULAR_POSITION_OF_RADIUS_HOMING_SENSOR;
   setCurrentPolarCoordinate(r, theta);
 
-  r = SANDBOX_MIN_RADIUS_MM; 
+  r = SANDBOX_MIN_RADIUS_MM + 7; 
   theta = 0;
   addPolarWaypointWithDominateMotorSpeedNoRangeChecking(r, theta, RADIUS_HOMING_SPEED_MM_PER_SEC);
   while(!steppers.finishMovingToFinalWaypoints());

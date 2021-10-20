@@ -37,6 +37,7 @@ const int defaultBallSpeedMMperSec = 30;
 int ballSpeedMMperSec = defaultBallSpeedMMperSec;
 boolean spiralDirectionBtn = SPIRAL_OUT;
 byte ledBacklightBrightness = 0;
+byte onPowerbehavior;
 
 
 //
@@ -157,8 +158,7 @@ MENU_ITEM spirographDrawingsMenu[] = {
 //
 MENU_ITEM settingsAndToolsMenu[] = {
   {MENU_ITEM_TYPE_SUB_MENU_HEADER,   "Settings and Tools",             MENU_COLUMNS_2,                mainMenu},
-  {MENU_ITEM_TYPE_COMMAND,           "Set ball speed...",              setBallSpeedCommand,           NULL},
-  {MENU_ITEM_TYPE_COMMAND,           "Set lighting brightness...",     setLightingBrightnessCommand,  NULL},
+  {MENU_ITEM_TYPE_COMMAND,           "Settings...",                    settingsCommand,               NULL},
   {MENU_ITEM_TYPE_COMMAND,           "Display runtime...",             displayRuntimeCommand,         NULL},
   {MENU_ITEM_TYPE_COMMAND,           "Find the ball",                  findTheBallCommand,            NULL},
   {MENU_ITEM_TYPE_COMMAND,           "Move sand inward",               moveSandInwardCommand,         NULL},
@@ -232,6 +232,11 @@ void setup()
 
 
   //
+  // set what happens on Power Up
+  //
+  onPowerbehavior = ui.readConfigurationByte(EEPROM_ON_POWERUP_BEHAVIOR, ON_POWERUP_GOTO_MAIN_MENU);
+
+  //
   // home the R and Theta axes
   //
   homeThetaAndRCommand();
@@ -247,6 +252,22 @@ void setup()
 //
 void loop()
 {
+  //
+  // check if configured for "auto run"
+  //
+  if (onPowerbehavior)
+  {
+    //
+    // for "auto run", start drawing with a random block number
+    //
+    delay(5);
+    int startingBlockNumber = (analogRead(A0) % 10);
+    runDrawingsForever(startingBlockNumber);
+  }
+
+  //
+  // enter the menu system, then wait for the user to run commands
+  //
   ui.displayAndExecuteMenu(mainMenu);
 }
 
@@ -260,125 +281,136 @@ void loop()
 //
 void runForeverCommand(void)
 { 
-  digitalWrite(MOTOR_ENABLE_PIN, LOW);                            // enable the steppers
-  startMeasuringRunningTime();                                    // start the clock for measuring total runtime
- 
-  while(true)
-  {
-    if (drawSpiral(SPIRAL_OUT) == CANCEL_DRAWING)
-      break;
-    
-    if (drawStarFlower(SPIRAL_IN) == CANCEL_DRAWING)              // This looks good before hexagons
-      break;
-   
-    if (drawHexagons(SPIRAL_OUT) == CANCEL_DRAWING)               // This looks good after starFlower
-      break;
-
-    saveRunningTimeInEEPROM();
-       
-    if (drawClovers(SPIRAL_IN) == CANCEL_DRAWING)
-      break;
-
-    if (drawSquaresClipped(SPIRAL_OUT) == CANCEL_DRAWING)
-      break;
-
-    if (drawPetals(SPIRAL_IN) == CANCEL_DRAWING)                  // This has no twist
-      break;
-
-    saveRunningTimeInEEPROM();
-
-    if (drawScalopsTwistedClipped(SPIRAL_OUT) == CANCEL_DRAWING)  // This is a good one
-      break;
-
-    if (drawMoveSandInward() == CANCEL_DRAWING)                   // From OUT to OUT, clean up outside perimeter, move a bit of the sand inward
-      break;                                                     // this drawing has the same appearance as "Sun Rays"
-
-    if (drawSpiderWeb(SPIRAL_IN) == CANCEL_DRAWING)               // this erases everything under it
-      break;
-
-    saveRunningTimeInEEPROM();
-
-    if (drawStarsTwisted(SPIRAL_OUT) == CANCEL_DRAWING)
-      break;
-
-    if (drawHotSun(START_OUT_END_OUT) == CANCEL_DRAWING)          // From OUT to OUT, this erases everything under it
-      break;
-                                                                  
-    if (drawNarrowingSpirograph() == CANCEL_DRAWING)              // From OUT to OUT, looks good after drawHotSun()
-      break;
-
-    saveRunningTimeInEEPROM();
-
-    if (drawLittleCloversTwisted(SPIRAL_IN) == CANCEL_DRAWING)    // this erases everything under it
-      break;
-
-    if (drawPsycho(START_IN_END_IN) == CANCEL_DRAWING)            // From IN to IN
-      break;
-
-    if (drawCloversSuperTwist(SPIRAL_OUT) == CANCEL_DRAWING)      // Good one, looks good after after a radial drawing         
-      break;
-
-    saveRunningTimeInEEPROM();
-
-    if (drawSpiralHD(SPIRAL_IN) == CANCEL_DRAWING)                // From OUT to IN, this erases everything under it
-      break;
-
-    if (drawSpiralRays(START_IN_END_IN) == CANCEL_DRAWING)
-      break;
-
-    if (drawHearts() == CANCEL_DRAWING)                           // From IN to OUT 
-      break;
-
-    saveRunningTimeInEEPROM();
-
-    if (drawPerimeterSkirt() == CANCEL_DRAWING)                   // From OUT to OUT 
-      break;
-
-    if (drawScalopsTripleTwistClipped(SPIRAL_IN) == CANCEL_DRAWING)
-      break;
-                                                                  // 3:11 to here (at 40mm/s, format h:mm)
-    if (drawTrianglesClipped(SPIRAL_OUT) == CANCEL_DRAWING)       // Better to spiral out, looks great clipped
-      break;
-
-    saveRunningTimeInEEPROM();
-
-    if (drawLoops() == CANCEL_DRAWING)                            // From OUT to OUT, OK but not great to watch, looks interesting when done
-      break;
-
-    if (drawLittleClovers(SPIRAL_IN) == CANCEL_DRAWING) 
-      break;
-                       
-    if (drawCloversTwisted(SPIRAL_OUT) == CANCEL_DRAWING)
-      break;
-
-    saveRunningTimeInEEPROM();
-
-    if (drawStars() == CANCEL_DRAWING)                            // From OUT to IN, starting with a polygon, erases everything under
-      break;
-
-    if (drawSpiral(SPIRAL_OUT) == CANCEL_DRAWING)                 // From IN to OUT, Spiral needed for drawSixBlade()
-      break;
-    if (drawSixBlade() == CANCEL_DRAWING)                         // From OUT to OUT, this one is just OK
-      break;
-
-    saveRunningTimeInEEPROM();
-
-    if (drawCloversTripleTwistClipped(SPIRAL_IN) == CANCEL_DRAWING) // good, looks similar to, but different from drawScalopsTripleTwistClipped()
-      break;
-
-    if (drawPolygonSuperTwist(SPIRAL_OUT) == CANCEL_DRAWING)      // this is good in or out, may want to add clipping
-      break;
-       
-    if (drawLooseSpiral(SPIRAL_IN) == CANCEL_DRAWING)             // Return to the beginning
-       break;
-
-      saveRunningTimeInEEPROM();
-  }
-
-  stopMeasuringRunningTime();                                     // stop recording the running time
-  saveRunningTimeInEEPROM();
-  digitalWrite(MOTOR_ENABLE_PIN, HIGH);                           // disable the steppers
+  int startingBlockNumber = 0;
+  runDrawingsForever(startingBlockNumber);
 }
+
+
+
+////
+//// "Run forever" command
+////
+//void runForeverCommand(void)
+//{ 
+//  digitalWrite(MOTOR_ENABLE_PIN, LOW);                            // enable the steppers
+//  startMeasuringRunningTime();                                    // start the clock for measuring total runtime
+// 
+//  while(true)
+//  {
+//    if (drawSpiral(SPIRAL_OUT) == CANCEL_DRAWING)
+//      break;
+//    
+//    if (drawStarFlower(SPIRAL_IN) == CANCEL_DRAWING)              // This looks good before hexagons
+//      break;
+//   
+//    if (drawHexagons(SPIRAL_OUT) == CANCEL_DRAWING)               // This looks good after starFlower
+//      break;
+//
+//    saveRunningTimeInEEPROM();
+//       
+//    if (drawClovers(SPIRAL_IN) == CANCEL_DRAWING)
+//      break;
+//
+//    if (drawSquaresClipped(SPIRAL_OUT) == CANCEL_DRAWING)
+//      break;
+//
+//    if (drawPetals(SPIRAL_IN) == CANCEL_DRAWING)                  // This has no twist
+//      break;
+//
+//    saveRunningTimeInEEPROM();
+//
+//    if (drawScalopsTwistedClipped(SPIRAL_OUT) == CANCEL_DRAWING)  // This is a good one
+//      break;
+//
+//    if (drawMoveSandInward() == CANCEL_DRAWING)                   // From OUT to OUT, clean up outside perimeter, move a bit of the sand inward
+//      break;                                                     // this drawing has the same appearance as "Sun Rays"
+//
+//    if (drawSpiderWeb(SPIRAL_IN) == CANCEL_DRAWING)               // this erases everything under it
+//      break;
+//
+//    saveRunningTimeInEEPROM();
+//
+//    if (drawStarsTwisted(SPIRAL_OUT) == CANCEL_DRAWING)
+//      break;
+//
+//    if (drawHotSun(START_OUT_END_OUT) == CANCEL_DRAWING)          // From OUT to OUT, this erases everything under it
+//      break;
+//                                                                  
+//    if (drawNarrowingSpirograph() == CANCEL_DRAWING)              // From OUT to OUT, looks good after drawHotSun()
+//      break;
+//
+//    saveRunningTimeInEEPROM();
+//
+//    if (drawLittleCloversTwisted(SPIRAL_IN) == CANCEL_DRAWING)    // this erases everything under it
+//      break;
+//
+//    if (drawPsycho(START_IN_END_IN) == CANCEL_DRAWING)            // From IN to IN
+//      break;
+//
+//    if (drawCloversSuperTwist(SPIRAL_OUT) == CANCEL_DRAWING)      // Good one, looks good after after a radial drawing         
+//      break;
+//
+//    saveRunningTimeInEEPROM();
+//
+//    if (drawSpiralHD(SPIRAL_IN) == CANCEL_DRAWING)                // From OUT to IN, this erases everything under it
+//      break;
+//
+//    if (drawSpiralRays(START_IN_END_IN) == CANCEL_DRAWING)
+//      break;
+//
+//    if (drawHearts() == CANCEL_DRAWING)                           // From IN to OUT 
+//      break;
+//
+//    saveRunningTimeInEEPROM();
+//
+//    if (drawPerimeterSkirt() == CANCEL_DRAWING)                   // From OUT to OUT 
+//      break;
+//
+//    if (drawScalopsTripleTwistClipped(SPIRAL_IN) == CANCEL_DRAWING)
+//      break;
+//                                                                  // 3:11 to here (at 40mm/s, format h:mm)
+//    if (drawTrianglesClipped(SPIRAL_OUT) == CANCEL_DRAWING)       // Better to spiral out, looks great clipped
+//      break;
+//
+//    saveRunningTimeInEEPROM();
+//
+//    if (drawLoops() == CANCEL_DRAWING)                            // From OUT to OUT, OK but not great to watch, looks interesting when done
+//      break;
+//
+//    if (drawLittleClovers(SPIRAL_IN) == CANCEL_DRAWING) 
+//      break;
+//                       
+//    if (drawCloversTwisted(SPIRAL_OUT) == CANCEL_DRAWING)
+//      break;
+//
+//    saveRunningTimeInEEPROM();
+//
+//    if (drawStars() == CANCEL_DRAWING)                            // From OUT to IN, starting with a polygon, erases everything under
+//      break;
+//
+//    if (drawSpiral(SPIRAL_OUT) == CANCEL_DRAWING)                 // From IN to OUT, Spiral needed for drawSixBlade()
+//      break;
+//    if (drawSixBlade() == CANCEL_DRAWING)                         // From OUT to OUT, this one is just OK
+//      break;
+//
+//    saveRunningTimeInEEPROM();
+//
+//    if (drawCloversTripleTwistClipped(SPIRAL_IN) == CANCEL_DRAWING) // good, looks similar to, but different from drawScalopsTripleTwistClipped()
+//      break;
+//
+//    if (drawPolygonSuperTwist(SPIRAL_OUT) == CANCEL_DRAWING)      // this is good in or out, may want to add clipping
+//      break;
+//       
+//    if (drawLooseSpiral(SPIRAL_IN) == CANCEL_DRAWING)             // Return to the beginning
+//       break;
+//
+//      saveRunningTimeInEEPROM();
+//  }
+//
+//  stopMeasuringRunningTime();                                     // stop recording the running time
+//  saveRunningTimeInEEPROM();
+//  digitalWrite(MOTOR_ENABLE_PIN, HIGH);                           // disable the steppers
+//}
 
 
 

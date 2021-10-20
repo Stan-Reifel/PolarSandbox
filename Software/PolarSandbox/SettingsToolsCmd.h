@@ -16,6 +16,7 @@
 //
 extern void setLightingBrightnessCommand(void);
 extern void setBallSpeedCommand(void);
+extern void settingsCommand(void);
 extern void homeThetaAndRCommand(void);
 extern void moveSandInwardCommand(void);
 extern void findTheBallCommand(void);

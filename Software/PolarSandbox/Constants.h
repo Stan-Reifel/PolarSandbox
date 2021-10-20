@@ -80,12 +80,20 @@ const int CANCEL_DRAWING = 1;
 
 
 //
+// what to do on "power up"
+//
+const int ON_POWERUP_GOTO_MAIN_MENU = 0;
+const int ON_POWERUP_RUN_THE_BALL = 1;
+
+
+//
 // storage locations in EEPROM for configuration values settable below
 //
 const int EEPROM_LED_BACKLIGHT_BRIGHTNESS = 0;                          // byte requires 2 bytes of EEPROM storage
 const int EEPROM_BALL_SPEED = EEPROM_LED_BACKLIGHT_BRIGHTNESS + 2;      // int requires 5 bytes of EEPROM storage
 const int EEPROM_RUNNING_TIME = EEPROM_BALL_SPEED + 5;                  // int requires 5 bytes of EEPROM storage                  
-const int EEPROM_nextValue = EEPROM_RUNNING_TIME + 5;                     
+const int EEPROM_ON_POWERUP_BEHAVIOR = EEPROM_RUNNING_TIME + 5;         // byte requires 2 bytes of EEPROM storage
+const int EEPROM_nextValue = EEPROM_ON_POWERUP_BEHAVIOR + 2;                     
 
 
 // ------------------------------------ End ---------------------------------
