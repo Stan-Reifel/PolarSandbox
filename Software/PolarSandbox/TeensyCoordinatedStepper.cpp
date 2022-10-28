@@ -513,6 +513,17 @@ void TeensyCoordinatedStepper::setAcceleration(float _accelerationRate)
 
 
 //
+// get the acceleration rate
+//  Exit:   acceleration rate returned with units in steps / second / second
+//
+float TeensyCoordinatedStepper::getAcceleration(void)
+{    
+  return(accelerationRate);
+}
+
+
+
+//
 // The "Junction Deviation" defines how much the motors will slow down when changing 
 // direction.  Small changes in direction typically need only a small reduction in speed, 
 // while sharp turns require a much larger reduction in speed.  For example, if the path 
@@ -536,6 +547,17 @@ void TeensyCoordinatedStepper::setJunctionDeviation(float _junctionDeviation)
     return;
     
   junctionDeviation = _junctionDeviation;
+}
+
+
+
+//
+// get the "Junction Deviation"
+//  Exit:   returnedJunction Deviation
+//
+float TeensyCoordinatedStepper::getJunctionDeviation(void)
+{    
+  return(junctionDeviation);
 }
 
 
@@ -670,7 +692,7 @@ void TeensyCoordinatedStepper::addWaypoint(int32_t *coordinate, float desiredSpe
   //
   if (thisWaypoint->dominateMotorSteps == 0)
     return;
-    
+
 
   //
   // finish computation to find Euclidean distance from all motors to this new point
@@ -683,7 +705,6 @@ void TeensyCoordinatedStepper::addWaypoint(int32_t *coordinate, float desiredSpe
   //
   for(int motorNumber = 0; motorNumber < numberOfMotors; motorNumber++)
     thisWaypoint_UnitVector[motorNumber] = thisWaypoint_UnitVector[motorNumber] / euclideanStepCount;
-
 
   //
   // check if this waypoint is the first one added to the buffer
@@ -776,6 +797,7 @@ void TeensyCoordinatedStepper::addWaypoint(int32_t *coordinate, float desiredSpe
   // the previous waypoint's desired speed, and the "max speed from change in direction"
   //
   desiredSpeed_Sqr = desiredSpeed * desiredSpeed;
+
   if (maxInitialSpeed_Sqr > desiredSpeed_Sqr)
     maxInitialSpeed_Sqr = desiredSpeed_Sqr;
 
@@ -783,6 +805,7 @@ void TeensyCoordinatedStepper::addWaypoint(int32_t *coordinate, float desiredSpe
     maxInitialSpeed_Sqr = buffersLastWaypoint_DesiredSpeed_Sqr;
 
   thisWaypoint->maxInitialSpeed_Sqr = maxInitialSpeed_Sqr;
+  thisWaypoint->initialSpeed_Sqr = maxInitialSpeed_Sqr;         // this value is updated later in the code
 
   //
   // this waypoint is fully entered into the waypoint buffer, advance the buffer's pointer
@@ -1240,7 +1263,6 @@ void TeensyCoordinatedStepper::transferOneWaypointToIsrSegment(void)
     thisIsrSegment->initialStepPeriod_InUS = stepPeriodfromStop_InUS;
   else
     thisIsrSegment->initialStepPeriod_InUS = 1000000.0 / initialSpeed_InStepsPerSec;
-
 
   //
   // set final speeds for this segment in US/step, set speed close to zero if this is 

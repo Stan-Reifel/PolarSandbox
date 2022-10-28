@@ -61,6 +61,8 @@ void lcdPlotCallback(void);
 
 void spiralCommand(void);
 void spiralHDCommand(void);
+void sinewaveTwistCommand(void);
+void sinewaveHDCommand(void);
 void trianglesClippedCommand(void);
 void hexagonsCommand(void);
 void heartsCommand(void);
@@ -111,7 +113,7 @@ MENU_ITEM singleDrawingsMenu[] = {
 MENU_ITEM sprialDrawingsMenu[] = {
   {MENU_ITEM_TYPE_SUB_MENU_HEADER,   "Spiral Drawings",       MENU_COLUMNS_2,                    singleDrawingsMenu},
   {MENU_ITEM_TYPE_COMMAND,           "Spiral",                spiralCommand,                     NULL},
-  {MENU_ITEM_TYPE_COMMAND,           "Spiral HD",             spiralHDCommand,                   NULL},
+  {MENU_ITEM_TYPE_COMMAND,           "Sinewave HD",           sinewaveHDCommand,                 NULL},
   {MENU_ITEM_TYPE_COMMAND,           "Hexagons",              hexagonsCommand,                   NULL},
   {MENU_ITEM_TYPE_COMMAND,           "Triangles clipped",     trianglesClippedCommand,           NULL},
   {MENU_ITEM_TYPE_COMMAND,           "Hearts",                heartsCommand,                     NULL},
@@ -180,7 +182,7 @@ void setup()
   //
   // setup the LCD and UI
   //
-  ui.begin(LCD_ORIENTATION_LANDSCAPE_4PIN_RIGHT, Arial_9_Bold);
+  ui.begin(LCD_CS_PIN, LCD_DC_PIN, TOUCH_CS_PIN, LCD_ORIENTATION_LANDSCAPE_4PIN_RIGHT, Arial_9_Bold);
 
   //
   // setup the stepper driver
@@ -261,7 +263,7 @@ void loop()
     // for "auto run", start drawing with a random block number
     //
     delay(5);
-    int startingBlockNumber = (analogRead(A0) % 10);
+    int startingBlockNumber = (analogRead(A0) % (8 + 1));
     runDrawingsForever(startingBlockNumber);
   }
 
@@ -284,134 +286,6 @@ void runForeverCommand(void)
   int startingBlockNumber = 0;
   runDrawingsForever(startingBlockNumber);
 }
-
-
-
-////
-//// "Run forever" command
-////
-//void runForeverCommand(void)
-//{ 
-//  digitalWrite(MOTOR_ENABLE_PIN, LOW);                            // enable the steppers
-//  startMeasuringRunningTime();                                    // start the clock for measuring total runtime
-// 
-//  while(true)
-//  {
-//    if (drawSpiral(SPIRAL_OUT) == CANCEL_DRAWING)
-//      break;
-//    
-//    if (drawStarFlower(SPIRAL_IN) == CANCEL_DRAWING)              // This looks good before hexagons
-//      break;
-//   
-//    if (drawHexagons(SPIRAL_OUT) == CANCEL_DRAWING)               // This looks good after starFlower
-//      break;
-//
-//    saveRunningTimeInEEPROM();
-//       
-//    if (drawClovers(SPIRAL_IN) == CANCEL_DRAWING)
-//      break;
-//
-//    if (drawSquaresClipped(SPIRAL_OUT) == CANCEL_DRAWING)
-//      break;
-//
-//    if (drawPetals(SPIRAL_IN) == CANCEL_DRAWING)                  // This has no twist
-//      break;
-//
-//    saveRunningTimeInEEPROM();
-//
-//    if (drawScalopsTwistedClipped(SPIRAL_OUT) == CANCEL_DRAWING)  // This is a good one
-//      break;
-//
-//    if (drawMoveSandInward() == CANCEL_DRAWING)                   // From OUT to OUT, clean up outside perimeter, move a bit of the sand inward
-//      break;                                                     // this drawing has the same appearance as "Sun Rays"
-//
-//    if (drawSpiderWeb(SPIRAL_IN) == CANCEL_DRAWING)               // this erases everything under it
-//      break;
-//
-//    saveRunningTimeInEEPROM();
-//
-//    if (drawStarsTwisted(SPIRAL_OUT) == CANCEL_DRAWING)
-//      break;
-//
-//    if (drawHotSun(START_OUT_END_OUT) == CANCEL_DRAWING)          // From OUT to OUT, this erases everything under it
-//      break;
-//                                                                  
-//    if (drawNarrowingSpirograph() == CANCEL_DRAWING)              // From OUT to OUT, looks good after drawHotSun()
-//      break;
-//
-//    saveRunningTimeInEEPROM();
-//
-//    if (drawLittleCloversTwisted(SPIRAL_IN) == CANCEL_DRAWING)    // this erases everything under it
-//      break;
-//
-//    if (drawPsycho(START_IN_END_IN) == CANCEL_DRAWING)            // From IN to IN
-//      break;
-//
-//    if (drawCloversSuperTwist(SPIRAL_OUT) == CANCEL_DRAWING)      // Good one, looks good after after a radial drawing         
-//      break;
-//
-//    saveRunningTimeInEEPROM();
-//
-//    if (drawSpiralHD(SPIRAL_IN) == CANCEL_DRAWING)                // From OUT to IN, this erases everything under it
-//      break;
-//
-//    if (drawSpiralRays(START_IN_END_IN) == CANCEL_DRAWING)
-//      break;
-//
-//    if (drawHearts() == CANCEL_DRAWING)                           // From IN to OUT 
-//      break;
-//
-//    saveRunningTimeInEEPROM();
-//
-//    if (drawPerimeterSkirt() == CANCEL_DRAWING)                   // From OUT to OUT 
-//      break;
-//
-//    if (drawScalopsTripleTwistClipped(SPIRAL_IN) == CANCEL_DRAWING)
-//      break;
-//                                                                  // 3:11 to here (at 40mm/s, format h:mm)
-//    if (drawTrianglesClipped(SPIRAL_OUT) == CANCEL_DRAWING)       // Better to spiral out, looks great clipped
-//      break;
-//
-//    saveRunningTimeInEEPROM();
-//
-//    if (drawLoops() == CANCEL_DRAWING)                            // From OUT to OUT, OK but not great to watch, looks interesting when done
-//      break;
-//
-//    if (drawLittleClovers(SPIRAL_IN) == CANCEL_DRAWING) 
-//      break;
-//                       
-//    if (drawCloversTwisted(SPIRAL_OUT) == CANCEL_DRAWING)
-//      break;
-//
-//    saveRunningTimeInEEPROM();
-//
-//    if (drawStars() == CANCEL_DRAWING)                            // From OUT to IN, starting with a polygon, erases everything under
-//      break;
-//
-//    if (drawSpiral(SPIRAL_OUT) == CANCEL_DRAWING)                 // From IN to OUT, Spiral needed for drawSixBlade()
-//      break;
-//    if (drawSixBlade() == CANCEL_DRAWING)                         // From OUT to OUT, this one is just OK
-//      break;
-//
-//    saveRunningTimeInEEPROM();
-//
-//    if (drawCloversTripleTwistClipped(SPIRAL_IN) == CANCEL_DRAWING) // good, looks similar to, but different from drawScalopsTripleTwistClipped()
-//      break;
-//
-//    if (drawPolygonSuperTwist(SPIRAL_OUT) == CANCEL_DRAWING)      // this is good in or out, may want to add clipping
-//      break;
-//       
-//    if (drawLooseSpiral(SPIRAL_IN) == CANCEL_DRAWING)             // Return to the beginning
-//       break;
-//
-//      saveRunningTimeInEEPROM();
-//  }
-//
-//  stopMeasuringRunningTime();                                     // stop recording the running time
-//  saveRunningTimeInEEPROM();
-//  digitalWrite(MOTOR_ENABLE_PIN, HIGH);                           // disable the steppers
-//}
-
 
 
 
@@ -440,6 +314,38 @@ void spiralHDCommand(void)
   startMeasuringRunningTime();                            // start the clock for recording total runtime
 
   drawSpiralHD(spiralDirectionBtn);                       // draw the figure
+
+  stopMeasuringRunningTime();                             // stop recording the running time
+  digitalWrite(MOTOR_ENABLE_PIN, HIGH);                   // disable the steppers
+}
+
+
+
+//
+// "sinewave twist" command
+//
+void sinewaveTwistCommand(void)
+{ 
+  digitalWrite(MOTOR_ENABLE_PIN, LOW);                    // enable the steppers
+  startMeasuringRunningTime();                            // start the clock for recording total runtime
+
+  drawSineTwisted(spiralDirectionBtn);                    // draw the figure
+
+  stopMeasuringRunningTime();                             // stop recording the running time
+  digitalWrite(MOTOR_ENABLE_PIN, HIGH);                   // disable the steppers
+}
+
+
+
+//
+// "sinewave HD" command
+//
+void sinewaveHDCommand(void)
+{ 
+  digitalWrite(MOTOR_ENABLE_PIN, LOW);                    // enable the steppers
+  startMeasuringRunningTime();                            // start the clock for recording total runtime
+
+  drawSinewaveHD(spiralDirectionBtn);                     // draw the figure
 
   stopMeasuringRunningTime();                             // stop recording the running time
   digitalWrite(MOTOR_ENABLE_PIN, HIGH);                   // disable the steppers

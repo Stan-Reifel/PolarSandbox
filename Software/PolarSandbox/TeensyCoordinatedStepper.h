@@ -62,18 +62,20 @@ class TeensyCoordinatedStepper
     void connectToPins(byte motor0_StepPin, byte motor0_DirectionPin, boolean motor0_ReverseDirection, byte motor1_StepPin, byte motor1_DirectionPin, boolean motor1_ReverseDirection, byte motor2_StepPin, byte motor2_DirectionPin, boolean motor2_ReverseDirection);
     void connectToPins(byte motor0_StepPin, byte motor0_DirectionPin, boolean motor0_ReverseDirection, byte motor1_StepPin, byte motor1_DirectionPin, boolean motor1_ReverseDirection, byte motor2_StepPin, byte motor2_DirectionPin, boolean motor2_ReverseDirection, byte motor3_StepPin, byte motor3_DirectionPin, boolean motor3_ReverseDirection);
     void setAcceleration(float _accelerationRate);
+    float getAcceleration(void);
     void setJunctionDeviation(float _junctionDeviation);
+    float getJunctionDeviation(void);
     void emergencyStop(void);
     void addWaypoint(int32_t *motorSteps, float desiredSpeed);
     boolean finishMovingToFinalWaypoints(void);
     int getMotionStatus(void);
+    boolean isWaypointsBufferFull(void);
+    void sendWaypointsToSteppers(void);
     void getCurrentCoordinate(int32_t *currentCoordinate);
     void setCurrentCoordinate(int32_t *newCoordinate);
     void dumpWaypointBuffer(void);
     void dumpIsrSegmentsBuffer(void);
     void dumpMotionStatus(void);
-    boolean isWaypointsBufferFull(void);
-    void sendWaypointsToSteppers(void);
 
 
   private:

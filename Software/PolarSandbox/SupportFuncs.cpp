@@ -8,6 +8,7 @@
 
 #include <arduino.h>
 #include "Constants.h"
+#include "SettingsToolsCmd.h"
 #include "SupportFuncs.h"
 #include <EEPROM.h>
 #include <TeensyUserInterface.h>
@@ -21,11 +22,13 @@
 //
 extern TeensyUserInterface ui;
 extern TeensyCoordinatedStepper steppers;
+extern int ballSpeedMMperSec;
 
 
 //
 // forward function declarations
 //
+int displayPausedScreen(void);
 void moveUntilHomeSensorSignal(float moveToR, float moveToTheta, float speedStepsPerSecond, boolean waitForThisSignal);
 void moveRelativeForHoming(float moveToR, float moveToTheta, float speedStepsPerSecond);
 
@@ -46,8 +49,8 @@ const float SPEED_SCALER_FOR_INITAL_MOVE = 0.75;
 //            CANCEL_DRAWING returned if user has cancelled the remaining drawing
 //
 int plotPolarFuncWithIncreasingTheta(float (*equation_PlotPolarFuncWithIncreasingTheta)(float),
-         float speed, float  beginAtAbsoluteTheta, float startingTheta, float endingTheta, 
-         float pointSpacingMM, float pointSpacingTolerance, boolean clipPlotToSandboxRadiusFlag,
+         float  beginAtAbsoluteTheta, float startingTheta, float endingTheta, float pointSpacingMM, 
+         float pointSpacingTolerance, boolean clipPlotToSandboxRadiusFlag,
          float *finalAbsoluteTheta)
 {
   float theta;
@@ -90,7 +93,7 @@ int plotPolarFuncWithIncreasingTheta(float (*equation_PlotPolarFuncWithIncreasin
     r = SANDBOX_MAX_RADIUS_MM;
   rLast = r;
 
-  results = addPolarWaypoint(r, theta - thetaOffsetForStartingAngle, speed * SPEED_SCALER_FOR_INITAL_MOVE);
+  results = addPolarWaypoint(r, theta - thetaOffsetForStartingAngle, (float) ballSpeedMMperSec * SPEED_SCALER_FOR_INITAL_MOVE);
   if (results == CANCEL_DRAWING)
     return(CANCEL_DRAWING);
 
@@ -169,7 +172,7 @@ int plotPolarFuncWithIncreasingTheta(float (*equation_PlotPolarFuncWithIncreasin
     //
     theta = newTheta;
     rLast = r;
-    results = addPolarWaypoint(r, theta - thetaOffsetForStartingAngle, speed);
+    results = addPolarWaypoint(r, theta - thetaOffsetForStartingAngle, (float) ballSpeedMMperSec);
     if (results == CANCEL_DRAWING)
       break;
 
@@ -199,7 +202,7 @@ int plotPolarFuncWithIncreasingTheta(float (*equation_PlotPolarFuncWithIncreasin
 //            CANCEL_DRAWING returned if user has cancelled the remaining drawing
 //
 int plotPolarXYFuncWithIncreasingTheta(void(*equation_PlotPolarXYFuncWithIncreasingTheta)(float, float*, float*),
-         float speed, float  beginAtAbsoluteTheta, float startingTheta, float endingTheta, float pointSpacingMM, 
+         float  beginAtAbsoluteTheta, float startingTheta, float endingTheta, float pointSpacingMM, 
          float pointSpacingTolerance, float *finalAbsoluteTheta)
 {
   float theta;
@@ -247,7 +250,7 @@ int plotPolarXYFuncWithIncreasingTheta(void(*equation_PlotPolarXYFuncWithIncreas
   xLast = x;
   yLast = y;
 
-  results = addPolarWaypoint(moveToR, moveToTheta, speed * SPEED_SCALER_FOR_INITAL_MOVE);
+  results = addPolarWaypoint(moveToR, moveToTheta, (float) ballSpeedMMperSec * SPEED_SCALER_FOR_INITAL_MOVE);
   if (results == CANCEL_DRAWING)
     return(CANCEL_DRAWING);
 
@@ -343,7 +346,7 @@ int plotPolarXYFuncWithIncreasingTheta(void(*equation_PlotPolarXYFuncWithIncreas
     //
     // move to the point
     //    
-    results = addPolarWaypoint(moveToR, moveToTheta, speed);
+    results = addPolarWaypoint(moveToR, moveToTheta, (float) ballSpeedMMperSec);
     if (results == CANCEL_DRAWING)
       break;
 
@@ -367,15 +370,14 @@ int plotPolarXYFuncWithIncreasingTheta(void(*equation_PlotPolarXYFuncWithIncreas
   
 
 
-
 //
 // plot a radial function with varying R, solving for theta
 //    Exit:   CONTINUE_DRAWING returned normally
 //            CANCEL_DRAWING returned if user has cancelled the remaining drawing
 //
-int plotRadialFuncByRadius(float (*Equation_PlotRadialFuncByRadius)(float), float speed, 
-      float beginAtAbsoluteTheta, float DivisionsPerCircle, float StartingRadius, float EndingRadius, 
-      float pointSpacingMM, float pointSpacingTolerance, boolean startEndPosition, float *finalAbsoluteTheta)
+int plotRadialFuncByRadius(float (*Equation_PlotRadialFuncByRadius)(float), float beginAtAbsoluteTheta, 
+      float DivisionsPerCircle, float StartingRadius, float EndingRadius, float pointSpacingMM, 
+      float pointSpacingTolerance, boolean startEndPosition, float *finalAbsoluteTheta)
 {
   float rDelta;
   float rDeltaTooLow;
@@ -428,7 +430,7 @@ int plotRadialFuncByRadius(float (*Equation_PlotRadialFuncByRadius)(float), floa
   thetaLast = theta;
   moveToTheta = theta + beginAtAbsoluteTheta;
 
-  results = addPolarWaypoint(r, moveToTheta, speed * SPEED_SCALER_FOR_INITAL_MOVE);
+  results = addPolarWaypoint(r, moveToTheta, (float) ballSpeedMMperSec * SPEED_SCALER_FOR_INITAL_MOVE);
   if (results == CANCEL_DRAWING)
     return(CANCEL_DRAWING);
 
@@ -511,7 +513,7 @@ int plotRadialFuncByRadius(float (*Equation_PlotRadialFuncByRadius)(float), floa
       //
       // move to the point
       //    
-      results = addPolarWaypoint(r, moveToTheta, speed);
+      results = addPolarWaypoint(r, moveToTheta, (float) ballSpeedMMperSec);
       if (results == CANCEL_DRAWING)
         break;
 
@@ -547,7 +549,7 @@ int plotRadialFuncByRadius(float (*Equation_PlotRadialFuncByRadius)(float), floa
 //    Exit:   CONTINUE_DRAWING returned normally
 //            CANCEL_DRAWING returned if user has cancelled the remaining drawing
 //
-int plotRadialFuncByRadiusBackingUpOnSamePath(float (*Equation_PlotRadialFuncByRadius)(float), float speed, 
+int plotRadialFuncByRadiusBackingUpOnSamePath(float (*Equation_PlotRadialFuncByRadius)(float), 
       float beginAtAbsoluteTheta, float DivisionsPerCircle, float StartingRadius, float EndingRadius, 
       float pointSpacingMM, float pointSpacingTolerance, boolean startEndPosition, float *finalAbsoluteTheta)
 {
@@ -604,7 +606,7 @@ int plotRadialFuncByRadiusBackingUpOnSamePath(float (*Equation_PlotRadialFuncByR
   thetaLast = theta;
   moveToTheta = theta + beginAtAbsoluteTheta;
 
-  results = addPolarWaypoint(r, moveToTheta, speed * SPEED_SCALER_FOR_INITAL_MOVE);
+  results = addPolarWaypoint(r, moveToTheta, (float) ballSpeedMMperSec * SPEED_SCALER_FOR_INITAL_MOVE);
   if (results == CANCEL_DRAWING)
     return(CANCEL_DRAWING);
 
@@ -689,7 +691,7 @@ int plotRadialFuncByRadiusBackingUpOnSamePath(float (*Equation_PlotRadialFuncByR
       //
       // move to the point
       //    
-      results = addPolarWaypoint(r, moveToTheta, speed);
+      results = addPolarWaypoint(r, moveToTheta, (float) ballSpeedMMperSec);
       if (results == CANCEL_DRAWING)
         break;
 
@@ -731,12 +733,6 @@ int plotRadialFuncByRadiusBackingUpOnSamePath(float (*Equation_PlotRadialFuncByR
   *finalAbsoluteTheta = normalizeAngle(moveToTheta);
   return(results);
 }
-
-
-
-
-
-
 
 
 // ---------------------------------------------------------------------------------
@@ -1166,22 +1162,69 @@ int plottingDisplay_CheckButtons(void)
     while(!steppers.finishMovingToFinalWaypoints());        // wait for the queued waypoints to finish
     stopMeasuringRunningTime();                             // stop recording the running time
 
-
     //
-    // create a new screen, giving the user the choice of "resuming" or "stopping"
+    // display the "paused" screen, getting new instructions from the user
     //
-    ui.lcdClearScreen(LCD_NAVY);
-    ui.lcdSetCursorXY(ui.lcdWidth/2, 40);
-    ui.lcdPrintCentered("Drawing has been paused...");
+    return(displayPausedScreen());
+  }
 
-    const int buttonWidth = 220;
-    const int buttonHeight = 45;
-    const int buttonX = ui.lcdWidth/2; 
+  return(CONTINUE_DRAWING);
+}
 
-    BUTTON resumeButton = {"Resume this drawing", buttonX, ui.lcdHeight/2 - buttonHeight/2 + 8, buttonWidth, buttonHeight};
-    ui.drawButton(resumeButton);
+
+
+//
+// display the dialog shown when drawing is paused
+//    Exit:   CONTINUE_DRAWING returned normally
+//            CANCEL_DRAWING returned if user has cancelled the remaining drawing
+//
+int displayPausedScreen(void)
+{
+  const int buttonWidth = 220;
+  const int buttonHeight = 35;
+  const int buttonX = ui.lcdWidth/2; 
+  const int buttonSpacingY = 49;
   
-    BUTTON cancelButton = {"Back to the menu", buttonX, ui.lcdHeight/2 + buttonHeight/2 + 24, buttonWidth, buttonHeight};
+//  const int buttonWidth = 220;
+//  const int buttonHeight = 38;
+//  const int buttonX = ui.lcdWidth/2; 
+//  const int buttonSpacingY = 51;
+//  const int topLineY = 14;
+
+
+
+  while(true)
+  {
+    //
+    // draw a new screen, giving the user the choices of what to do while paused
+    //
+//    int y = topLineY;
+//    ui.lcdClearScreen(LCD_NAVY);
+//    ui.lcdSetCursorXY(ui.lcdWidth/2, y);
+//    ui.lcdPrintCentered("Drawing has been paused...");
+//    y += 48;
+
+
+
+
+    
+    ui.drawTitleBar("Drawing has been paused...");
+    ui.clearDisplaySpace();
+    int y = ui.displaySpaceTopY + 28;
+
+    BUTTON settingsButton = {"Settings...", buttonX, y, buttonWidth, buttonHeight};
+    ui.drawButton(settingsButton);
+    y += buttonSpacingY;
+
+    BUTTON displayRuntimeButton = {"Display runtime...", buttonX, y, buttonWidth, buttonHeight};
+    ui.drawButton(displayRuntimeButton);
+    y += buttonSpacingY;
+
+    BUTTON resumeButton = {"Resume this drawing", buttonX, y, buttonWidth, buttonHeight};
+    ui.drawButton(resumeButton);
+    y += buttonSpacingY;
+  
+    BUTTON cancelButton = {"Back to the menu", buttonX, y, buttonWidth, buttonHeight};
     ui.drawButton(cancelButton);
 
     //
@@ -1189,24 +1232,34 @@ int plottingDisplay_CheckButtons(void)
     //
     while(true)
     {
-      ui.getTouchEvents();                          // check for touch events
+      ui.getTouchEvents();                           // check for touch events
       
-      if (ui.checkForButtonClicked(resumeButton))   // check if the user presses "Resume"
+      if (ui.checkForButtonClicked(settingsButton))  // check if the user presses "Settings"
       {
-         plottingDisplay_Init();
-         startMeasuringRunningTime();               // resume recording the running time
-         return(CONTINUE_DRAWING);
+        settingsCommand();                           // display the "settings" dialog
+        break;                                       // break so the screen is redrawn
       }
       
-      if (ui.checkForButtonClicked(cancelButton))   // check if the user presses "Cancel"
+      if (ui.checkForButtonClicked(displayRuntimeButton)) // check if the user presses "Display Runtime"
       {
-         plottingDisplay_Init();
-         return(CANCEL_DRAWING);
+        displayRuntimeCommand();                     // show the "runtime" dialog
+        break;                                       // break so the screen is redrawn
+      }
+      
+      if (ui.checkForButtonClicked(resumeButton))    // check if the user presses "Resume"
+      {
+        plottingDisplay_Init();
+        startMeasuringRunningTime();                 // resume recording the running time
+        return(CONTINUE_DRAWING);
+      }
+      
+      if (ui.checkForButtonClicked(cancelButton))    // check if the user presses "Cancel"
+      {
+        plottingDisplay_Init();
+        return(CANCEL_DRAWING);
       }
     }
   }
-
-  return(CONTINUE_DRAWING);
 }
 
 

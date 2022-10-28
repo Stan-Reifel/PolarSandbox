@@ -54,7 +54,9 @@ static float cloverLeaves;
 static float numberScalops;
 static float amplitudeOffset;
 static float amplitudeScalerWithRotations;
+static float amplitudeScaler;
 static float starPoints;
+static float sineCyclesPerRev;
 static float angularSweep;
 static float inwardThetaOffset;
 static float outerRadius;
@@ -64,7 +66,7 @@ static float triangleAmplitude;
 static float trianglePeriod;
 static float xySizeScaler;
 static float endTheta;
-
+static boolean clipToSpiralDiameterFlag;
 
 
 // ---------------------------------------------------------------------------------
@@ -125,18 +127,26 @@ void drawForever(int startingBlockNumber)
            
         if (drawClovers(SPIRAL_IN) == CANCEL_DRAWING)
           return;
-    
-        if (drawSquaresClipped(SPIRAL_OUT) == CANCEL_DRAWING)
+
+        // REPLACE WITH THIS ONE???
+        if (drawHexiClippedSine_SpiderWeb(SPIRAL_OUT) == CANCEL_DRAWING)         
           return;
+
         break;
       }
       
       case 1:
       {
-        if (drawPetals(SPIRAL_IN) == CANCEL_DRAWING)                  // This has no twist
+        if (drawPetals(SPIRAL_IN) == CANCEL_DRAWING)    // >>>>>>>>>>> THIS ONE IS TOO SIMILAR TO drawClovers() AND SHOULD BE REPLACED!!!
+          return;
+
+        if (drawSpiralHD(SPIRAL_OUT) == CANCEL_DRAWING)               // From IN to OUT, TriangleShells() needs this one first
+          return;
+
+        if (drawTriangleShells(SPIRAL_IN) == CANCEL_DRAWING)          // From OUT to IN, Looks best with: SPIRAL_IN            
           return;
     
-        if (drawScalopsTwistedClipped(SPIRAL_OUT) == CANCEL_DRAWING)  // This is a good one
+        if (drawScalopsTwistedClipped(SPIRAL_OUT) == CANCEL_DRAWING)  // From IN to OUT, This is a good one
           return;
         break;
       }
@@ -145,17 +155,24 @@ void drawForever(int startingBlockNumber)
       {
         if (drawMoveSandInward() == CANCEL_DRAWING)                   // From OUT to OUT, clean up outside perimeter, move a bit of the sand inward
           return;                                                     // this drawing has the same appearance as "Sun Rays"
-    
+          
         if (drawSpiderWeb(SPIRAL_IN) == CANCEL_DRAWING)               // this erases everything under it
           return;
+
+        if (drawHeptaClippedSine(SPIRAL_OUT) == CANCEL_DRAWING)       // this erases everything under it
+          return;
+          
         break;
       }
     
       case 3:
       {
-        if (drawStarsTwisted(SPIRAL_OUT) == CANCEL_DRAWING)
+       if (drawOctaClippedSine(SPIRAL_IN) == CANCEL_DRAWING)          // From OUT to IN
           return;
-    
+          
+       if (drawBiClippedSine(SPIRAL_OUT) == CANCEL_DRAWING)           // From IN to OUT, looks best with: SPIRAL_OUT
+          return;
+
         if (drawHotSun(START_OUT_END_OUT) == CANCEL_DRAWING)          // From OUT to OUT, this erases everything under it
           return;
                                                                       
@@ -171,81 +188,75 @@ void drawForever(int startingBlockNumber)
     
         if (drawPsycho(START_IN_END_IN) == CANCEL_DRAWING)            // From IN to IN
           return;
+          
+        if (drawCloversSuperTwist(SPIRAL_OUT) == CANCEL_DRAWING)      // Good one, looks good after after a radial drawing         
+          return;
         break;
       }
     
       case 5:
       {
-        if (drawCloversSuperTwist(SPIRAL_OUT) == CANCEL_DRAWING)      // Good one, looks good after after a radial drawing         
+        if (drawSpiralHD(SPIRAL_IN) == CANCEL_DRAWING)               // From OUT to IN
+          return;
+
+        if (drawSpiralRays(START_IN_END_IN) == CANCEL_DRAWING)
+          return;
+          
+        if (drawHearts() == CANCEL_DRAWING)                           // From IN to OUT 
           return;
     
-        if (drawSpiralHD(SPIRAL_IN) == CANCEL_DRAWING)                // From OUT to IN, this erases everything under it
+        if (drawPerimeterSkirt() == CANCEL_DRAWING)                   // From OUT to OUT 
           return;
         break;
       }
     
       case 6:
       {
-        if (drawSpiralRays(START_IN_END_IN) == CANCEL_DRAWING)
-          return;
-    
-        if (drawHearts() == CANCEL_DRAWING)                           // From IN to OUT 
-          return;
-    
-        if (drawPerimeterSkirt() == CANCEL_DRAWING)                   // From OUT to OUT 
-          return;
-    
         if (drawScalopsTripleTwistClipped(SPIRAL_IN) == CANCEL_DRAWING)
+          return;
+
+        if (drawTrianglesClipped(SPIRAL_OUT) == CANCEL_DRAWING)       // Better to spiral out, looks great clipped
           return;
         break;
       }
     
       case 7:
       {  
-        if (drawTrianglesClipped(SPIRAL_OUT) == CANCEL_DRAWING)       // Better to spiral out, looks great clipped
-          return;
-    
         if (drawLoops() == CANCEL_DRAWING)                            // From OUT to OUT, OK but not great to watch, looks interesting when done
           return;
     
         if (drawLittleClovers(SPIRAL_IN) == CANCEL_DRAWING) 
+          return;
+
+        if (drawCloversTwisted(SPIRAL_OUT) == CANCEL_DRAWING)
           return;
         break;
       }
    
       case 8:
       {                    
-        if (drawCloversTwisted(SPIRAL_OUT) == CANCEL_DRAWING)
+        if (drawNonagonStars() == CANCEL_DRAWING)                      // From OUT to IN, starting with a polygon then stars on top, erases everything under
           return;
     
-        if (drawStars() == CANCEL_DRAWING)                            // From OUT to IN, starting with a polygon, erases everything under
-          return;
-    
-        if (drawSpiral(SPIRAL_OUT) == CANCEL_DRAWING)                 // From IN to OUT, Spiral needed for drawSixBlade()
-          return;
-        if (drawSixBlade() == CANCEL_DRAWING)                         // From OUT to OUT, this one is just OK
+        if (drawSineTwisted(SPIRAL_OUT) == CANCEL_DRAWING)             // From IN to OUT
           return;
        
         if (drawCloversTripleTwistClipped(SPIRAL_IN) == CANCEL_DRAWING) // good, looks similar to, but different from drawScalopsTripleTwistClipped()
           return;
+
+        if (drawPolygonSuperTwist(SPIRAL_OUT) == CANCEL_DRAWING)      // this is good in or out, may want to add clipping
+          return;
        break;
       }
    
-      case 9:
-      {                    
-        if (drawPolygonSuperTwist(SPIRAL_OUT) == CANCEL_DRAWING)      // this is good in or out, may want to add clipping
-          return;
-           
-        if (drawLooseSpiral(SPIRAL_IN) == CANCEL_DRAWING)             // Return to the beginning
-          return;
-       break;
-      }
-
       default:
       {
+        if (drawLooseSpiral(SPIRAL_IN) == CANCEL_DRAWING)              // Return to the beginning
+          return;
+
         if (drawSpiral(SPIRAL_OUT) == CANCEL_DRAWING)
           return;
-        blockNumber = -1;                                               // all blocks completed, start over at the beginning
+        blockNumber = -1;                                              // all blocks completed, start over
         break;
       }
     }
@@ -257,6 +268,203 @@ void drawForever(int startingBlockNumber)
     blockNumber++;
   }
 }
+
+
+
+//
+// good drawings, waiting to be added:
+//
+// drawSinewaveHD                      THIS ONE IS BETTER WITH: SPIRAL_IN 
+        
+        
+
+//
+// removed drawings:
+//
+//  if (drawSpiral(SPIRAL_OUT) == CANCEL_DRAWING)                 // From IN to OUT, Spiral needed for drawSixBlade()
+//    return;
+//  if (drawSixBlade() == CANCEL_DRAWING)                         // From OUT to OUT, this one is just OK
+//    return;
+//
+//  if (drawStarsTwisted(SPIRAL_OUT) == CANCEL_DRAWING)           // THIS ONE HAS A LARGE PITCH AND LEAVES GAPS
+//    return;
+//
+//  if (drawSquaresClipped(SPIRAL_OUT) == CANCEL_DRAWING)         // THIS ONE IS PRETTY DULL, BUT CLEARS STHE FIELD
+//    return;
+
+
+
+////
+//// this was current on 2/7/2022
+////
+//// sequence the drawings such that they repeat forever or until the user presses the "cancel" button, before calling  
+//// this the motors must be enabled and the runtime clock started
+////    Enter:  startingBlockNumber = block number to begin with, set to 0 to start at the beginning
+////
+//void drawForever(int startingBlockNumber)
+//{ 
+//  int blockNumber;
+//
+//  //
+//  // always start with a sprial, this will find the ball if not currently attached
+//  //
+//  if (drawSpiral(SPIRAL_OUT) == CANCEL_DRAWING)
+//    return;
+//
+//  //
+//  // loop forever, running the next block in the sequence
+//  //
+//  blockNumber = startingBlockNumber;
+//  while(true)
+//  {
+//    //
+//    // draw each block in order, note that blocks end with a drawing that fills the table
+//    //
+//    switch(blockNumber)
+//    {
+//      case 0:
+//      {
+//        if (drawStarFlower(SPIRAL_IN) == CANCEL_DRAWING)              // This looks good before hexagons
+//          return;
+//       
+//        if (drawHexagons(SPIRAL_OUT) == CANCEL_DRAWING)
+//          return;
+//           
+//        if (drawClovers(SPIRAL_IN) == CANCEL_DRAWING)
+//          return;
+//    
+//        if (drawSquaresClipped(SPIRAL_OUT) == CANCEL_DRAWING)
+//          return;
+//        break;
+//      }
+//      
+//      case 1:
+//      {
+//        if (drawPetals(SPIRAL_IN) == CANCEL_DRAWING)                  // This has no twist
+//          return;
+//    
+//        if (drawScalopsTwistedClipped(SPIRAL_OUT) == CANCEL_DRAWING)  // This is a good one
+//          return;
+//        break;
+//      }
+//     
+//      case 2:
+//      {
+//        if (drawMoveSandInward() == CANCEL_DRAWING)                   // From OUT to OUT, clean up outside perimeter, move a bit of the sand inward
+//          return;                                                     // this drawing has the same appearance as "Sun Rays"
+//    
+//        if (drawSpiderWeb(SPIRAL_IN) == CANCEL_DRAWING)               // this erases everything under it
+//          return;
+//        break;
+//      }
+//    
+//      case 3:
+//      {
+//        if (drawStarsTwisted(SPIRAL_OUT) == CANCEL_DRAWING)
+//          return;
+//    
+//        if (drawHotSun(START_OUT_END_OUT) == CANCEL_DRAWING)          // From OUT to OUT, this erases everything under it
+//          return;
+//                                                                      
+//        if (drawNarrowingSpirograph() == CANCEL_DRAWING)              // From OUT to OUT, looks good after drawHotSun()
+//          return;
+//        break;
+//      }
+//    
+//      case 4:
+//      {
+//        if (drawLittleCloversTwisted(SPIRAL_IN) == CANCEL_DRAWING)    // this erases everything under it
+//          return;
+//    
+//        if (drawPsycho(START_IN_END_IN) == CANCEL_DRAWING)            // From IN to IN
+//          return;
+//        break;
+//      }
+//    
+//      case 5:
+//      {
+//        if (drawCloversSuperTwist(SPIRAL_OUT) == CANCEL_DRAWING)      // Good one, looks good after after a radial drawing         
+//          return;
+//    
+//        if (drawSpiralHD(SPIRAL_IN) == CANCEL_DRAWING)                // From OUT to IN, this erases everything under it
+//          return;
+//        break;
+//      }
+//    
+//      case 6:
+//      {
+//        if (drawSpiralRays(START_IN_END_IN) == CANCEL_DRAWING)
+//          return;
+//    
+//        if (drawHearts() == CANCEL_DRAWING)                           // From IN to OUT 
+//          return;
+//    
+//        if (drawPerimeterSkirt() == CANCEL_DRAWING)                   // From OUT to OUT 
+//          return;
+//    
+//        if (drawScalopsTripleTwistClipped(SPIRAL_IN) == CANCEL_DRAWING)
+//          return;
+//        break;
+//      }
+//    
+//      case 7:
+//      {  
+//        if (drawTrianglesClipped(SPIRAL_OUT) == CANCEL_DRAWING)       // Better to spiral out, looks great clipped
+//          return;
+//    
+//        if (drawLoops() == CANCEL_DRAWING)                            // From OUT to OUT, OK but not great to watch, looks interesting when done
+//          return;
+//    
+//        if (drawLittleClovers(SPIRAL_IN) == CANCEL_DRAWING) 
+//          return;
+//        break;
+//      }
+//   
+//      case 8:
+//      {                    
+//        if (drawCloversTwisted(SPIRAL_OUT) == CANCEL_DRAWING)
+//          return;
+//    
+//        if (drawNonagonStars() == CANCEL_DRAWING)                     // From OUT to IN, starting with a polygon, erases everything under
+//          return;
+//    
+//        if (drawSpiral(SPIRAL_OUT) == CANCEL_DRAWING)                 // From IN to OUT, Spiral needed for drawSixBlade()
+//          return;
+//        if (drawSixBlade() == CANCEL_DRAWING)                         // From OUT to OUT, this one is just OK
+//          return;
+//       
+//        if (drawCloversTripleTwistClipped(SPIRAL_IN) == CANCEL_DRAWING) // good, looks similar to, but different from drawScalopsTripleTwistClipped()
+//          return;
+//       break;
+//      }
+//   
+//      case 9:
+//      {                    
+//        if (drawPolygonSuperTwist(SPIRAL_OUT) == CANCEL_DRAWING)      // this is good in or out, may want to add clipping
+//          return;
+//           
+//        if (drawLooseSpiral(SPIRAL_IN) == CANCEL_DRAWING)             // Return to the beginning
+//          return;
+//       break;
+//      }
+//
+//      default:
+//      {
+//        if (drawSpiral(SPIRAL_OUT) == CANCEL_DRAWING)
+//          return;
+//        blockNumber = -1;                                               // all blocks completed, start over at the beginning
+//        break;
+//      }
+//    }
+//    
+//    //
+//    // after completing a block, save the total runtime, then advance to the next block 
+//    //
+//    saveRunningTimeInEEPROM();
+//    blockNumber++;
+//  }
+//}
+
 
 
 // ---------------------------------------------------------------------------------
@@ -302,8 +510,8 @@ int drawSpiral(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Spiral, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Spiral, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -335,8 +543,8 @@ int drawSpiralHD(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Spiral, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Spiral, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -368,8 +576,8 @@ int drawLooseSpiral(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Spiral, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Spiral, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -417,8 +625,8 @@ int drawPetals(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Petals, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Petals, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -469,8 +677,42 @@ int drawTriangles(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Polygons, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Polygons, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+    &finalThetaFromLastPlot));
+}
+
+
+
+//
+// draw: "drawTriangleShells"  THIS ONE IS BETTER WITH: SPIRAL_IN, also needs to be on a plainish spiral
+//
+int drawTriangleShells(boolean direction)
+{ 
+  //
+  // prep the display screen for what's shown while drawing 
+  //
+  plottingDisplay_Init();
+
+  //
+  // set parameters for this drawing
+  //
+  spiralPitchMM = 3.5;
+  numberSides = 3;
+  twistAngle = 2;
+  float startingTheta = 3500;
+  float endingTheta = 28461;
+  float endpointSpacingMM = 2;
+  float endpointSpacingTolerance = 0.2;
+  boolean clipPlotToSandboxRadiusFlag = false;
+
+  //
+  // draw the figure
+  //
+  spiralDirection = direction;
+  inwardThetaOffset = startingTheta + endingTheta;
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Polygons, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -492,8 +734,7 @@ int drawTrianglesClipped(boolean direction)
   spiralPitchMM = 18;
   numberSides = 3;
   twistAngle = 3;
-//float startingTheta = 380;
-  float startingTheta = 470;
+  float startingTheta = 540;
   float endingTheta = 11340;
   float endpointSpacingMM = 2;
   float endpointSpacingTolerance = 0.2;
@@ -505,8 +746,8 @@ int drawTrianglesClipped(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Polygons, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Polygons, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -540,8 +781,8 @@ int drawSquares(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Polygons, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Polygons, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -574,8 +815,8 @@ int drawSquaresClipped(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Polygons, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Polygons, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -610,8 +851,8 @@ int drawHexagons(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Polygons, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Polygons, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -646,8 +887,8 @@ int drawPolygonSuperTwist(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Polygons, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Polygons, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -689,7 +930,7 @@ int drawClovers(boolean direction)
   amplitudeOffset = 15;
   amplitudeScalerWithRotations = 9;
   twistAngle = 0;
-  float startingTheta = 360;
+  float startingTheta = 460;
   float endingTheta = 5304;
   float endpointSpacingMM = 2;
   float endpointSpacingTolerance = 0.2;
@@ -700,8 +941,8 @@ int drawClovers(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Clovers, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Clovers, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -725,7 +966,7 @@ int drawCloversTwisted(boolean direction)
   amplitudeOffset = 40;
   amplitudeScalerWithRotations = 1;
   twistAngle = 2;
-  float startingTheta = 152;
+  float startingTheta = 225;
   float endingTheta = 5697;
   float endpointSpacingMM = 2;
   float endpointSpacingTolerance = 0.2;
@@ -737,8 +978,8 @@ int drawCloversTwisted(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Clovers, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Clovers, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -762,7 +1003,7 @@ int drawCloversSuperTwist(boolean direction)
   amplitudeOffset = 20;
   amplitudeScalerWithRotations = 2.5;
   twistAngle = -3;
-  float startingTheta = 370;
+  float startingTheta = 700;
   float endingTheta = 11065;
   float endpointSpacingMM = 2;
   float endpointSpacingTolerance = 0.2;
@@ -774,8 +1015,8 @@ int drawCloversSuperTwist(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Clovers, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Clovers, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -810,8 +1051,8 @@ int drawLittleClovers(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Clovers, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Clovers, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -847,8 +1088,8 @@ int drawLittleCloversTwisted(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Clovers, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Clovers, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -875,7 +1116,7 @@ float Equation_Stars(float theta)
 //
 // draw: "Stars" without twist 
 //
-int drawStars(void)
+int drawNonagonStars(void)
 { 
   //
   // prep the display screen for what's shown while drawing 
@@ -897,8 +1138,8 @@ int drawStars(void)
 
   spiralDirection = SPIRAL_IN;
   inwardThetaOffset = startingTheta + endingTheta;
-  if (plotPolarFuncWithIncreasingTheta(&Equation_Polygons, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-          startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  if (plotPolarFuncWithIncreasingTheta(&Equation_Polygons, finalThetaFromLastPlot, startingTheta, 
+          endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
           &finalThetaFromLastPlot) == CANCEL_DRAWING)
     return(CANCEL_DRAWING);
 
@@ -919,8 +1160,8 @@ int drawStars(void)
 
   spiralDirection = SPIRAL_IN;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Stars, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Stars, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -944,7 +1185,7 @@ int drawStarsTwisted(boolean direction)
   amplitudeOffset = 10;
   amplitudeScalerWithRotations = 13;
   twistAngle = 4.2;
-  float startingTheta = 480;
+  float startingTheta = 570;
   float endingTheta = 3842;
   float endpointSpacingMM = 2;
   float endpointSpacingTolerance = 0.2;
@@ -956,8 +1197,8 @@ int drawStarsTwisted(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Stars, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Stars, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -993,8 +1234,8 @@ int drawSpiderWeb(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Stars, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Stars, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -1030,8 +1271,8 @@ int drawStarFlower(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Stars, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Stars, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -1087,8 +1328,8 @@ int drawScalopsTwisted(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Scalops, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Scalops, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
@@ -1112,7 +1353,7 @@ int drawScalopsTwistedClipped(boolean direction)
   amplitudeOffset = 30;
   amplitudeScalerWithRotations = 0;
   twistAngle = 4;
-  float startingTheta = 2000;
+  float startingTheta = 2080;
   float endingTheta = 13000;
   float endpointSpacingMM = 2;
   float endpointSpacingTolerance = 0.2;
@@ -1123,11 +1364,258 @@ int drawScalopsTwistedClipped(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_Scalops, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Scalops, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
 
+
+// ---------------------------------------------------------------------------------
+//                                     Sinewaves
+// ---------------------------------------------------------------------------------
+
+//
+// polar function: Sine
+//
+float Equation_Sine(float theta)
+{
+  if (spiralDirection == SPIRAL_IN)
+    theta = inwardThetaOffset - theta;
+  theta = theta + (theta / 360 * twistAngle);
+  float spiralR = spiralPitchMM * theta / 360.0;
+  float r = spiralR + amplitudeOffset + (amplitudeScaler * SinD(theta * sineCyclesPerRev));
+  if (clipToSpiralDiameterFlag && (r > spiralR))
+    r = spiralR;
+  return(r);
+}
+
+
+
+//
+// draw: "Sinewaves" THIS ONE IS BETTER WITH: SPIRAL_IN
+//
+int drawSinewaveHD(boolean direction)
+{ 
+
+//return(drawTrianglesShell(direction));
+
+  
+  //
+  // prep the display screen for what's shown while drawing 
+  //
+  plottingDisplay_Init();
+
+  //
+  // set parameters for this drawing
+  //
+  spiralPitchMM = 4;
+  sineCyclesPerRev = 28;
+  amplitudeScaler = 6;
+  amplitudeOffset = 0;
+  twistAngle = 0;
+  clipToSpiralDiameterFlag = false;
+  float startingTheta = 1500;
+  float endingTheta = 25300;
+  float endpointSpacingMM = 2;
+  float endpointSpacingTolerance = 0.2;
+  boolean clipPlotToSandboxRadiusFlag = true;
+
+  //
+  // draw the figure
+  //
+  spiralDirection = direction;
+  inwardThetaOffset = startingTheta + endingTheta;
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Sine, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+    &finalThetaFromLastPlot));
+}
+
+
+
+//
+// draw: "Sinewaves twisted overlaping" X
+//
+int drawSineTwisted(boolean direction)
+{ 
+  //
+  // prep the display screen for what's shown while drawing 
+  //
+  plottingDisplay_Init();
+
+  //
+  // set parameters for this drawing
+  //
+  spiralPitchMM = 5;
+  sineCyclesPerRev = 25;
+  amplitudeScaler = 6.5;
+  amplitudeOffset = 0;
+  twistAngle = -5.4;
+  clipToSpiralDiameterFlag = false;
+  float startingTheta = 2200;
+  float endingTheta = 20400;
+  float endpointSpacingMM = 2;
+  float endpointSpacingTolerance = 0.2;
+  boolean clipPlotToSandboxRadiusFlag = true;
+
+
+  //
+  // draw the figure
+  //
+  spiralDirection = direction;
+  inwardThetaOffset = startingTheta + endingTheta;
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Sine, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+    &finalThetaFromLastPlot));
+}
+
+
+
+//
+// draw: "Hexi Clipped Sine - Spider Web" 
+//
+int drawHexiClippedSine_SpiderWeb(boolean direction)
+{ 
+  //
+  // prep the display screen for what's shown while drawing 
+  //
+  plottingDisplay_Init();
+
+  //
+  // set parameters for this drawing
+  //  
+  spiralPitchMM = 6;
+  sineCyclesPerRev = 16;
+  amplitudeScaler = 16;
+  amplitudeOffset = 0;
+  twistAngle = -11.2;
+  clipToSpiralDiameterFlag = true;
+  float startingTheta = 2000;
+  float endingTheta = 18000;
+  float endpointSpacingMM = 2;
+  float endpointSpacingTolerance = 0.2;
+  boolean clipPlotToSandboxRadiusFlag = true;
+
+
+  //
+  // draw the figure
+  //
+  spiralDirection = direction;
+  inwardThetaOffset = startingTheta + endingTheta;
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Sine, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+    &finalThetaFromLastPlot));
+}
+
+
+
+//
+// draw: "Hepta Clipped Sine" 
+//
+int drawHeptaClippedSine(boolean direction)
+{ 
+  //
+  // prep the display screen for what's shown while drawing 
+  //
+  plottingDisplay_Init();
+
+  //
+  // set parameters for this drawing
+  //
+  spiralPitchMM = 3;
+  sineCyclesPerRev = 7;
+  amplitudeScaler = 60;
+  amplitudeOffset = 40;
+  twistAngle = -5;
+  clipToSpiralDiameterFlag = true;
+  float startingTheta = 4400;
+  float endingTheta = 35800;
+  float endpointSpacingMM = 2;
+  float endpointSpacingTolerance = 0.2;
+  boolean clipPlotToSandboxRadiusFlag = true;
+
+  //
+  // draw the figure
+  //
+  spiralDirection = direction;
+  inwardThetaOffset = startingTheta + endingTheta;
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Sine, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+    &finalThetaFromLastPlot));
+}
+
+
+
+//
+// draw: "Octa Clipped Sine" 
+//
+int drawOctaClippedSine(boolean direction)
+{ 
+  //
+  // prep the display screen for what's shown while drawing 
+  //
+  plottingDisplay_Init();
+
+  //
+  // set parameters for this drawing
+  //
+  spiralPitchMM = 4;
+  sineCyclesPerRev = 8;
+  amplitudeScaler = 7;
+  amplitudeOffset = -4;
+  twistAngle = -17;
+  clipToSpiralDiameterFlag = true;
+  float startingTheta = 3000;
+  float endingTheta = 27000;
+  float endpointSpacingMM = 2;
+  float endpointSpacingTolerance = 0.2;
+  boolean clipPlotToSandboxRadiusFlag = true;
+
+  //
+  // draw the figure
+  //
+  spiralDirection = direction;
+  inwardThetaOffset = startingTheta + endingTheta;
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Sine, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+    &finalThetaFromLastPlot));
+}
+
+
+
+//
+// draw: "Bi Clipped Sine" 
+//
+int drawBiClippedSine(boolean direction)
+{ 
+  //
+  // prep the display screen for what's shown while drawing 
+  //
+  plottingDisplay_Init();
+
+  //
+  // set parameters for this drawing
+  //
+  spiralPitchMM = 4;
+  sineCyclesPerRev = 2;
+  amplitudeScaler = 50;
+  amplitudeOffset = 20;
+  twistAngle = -4;
+  clipToSpiralDiameterFlag = true;
+  float startingTheta = 3900;
+  float endingTheta = 27820;
+  float endpointSpacingMM = 2;
+  float endpointSpacingTolerance = 0.2;
+  boolean clipPlotToSandboxRadiusFlag = true;
+
+  //
+  // draw the figure
+  //
+  spiralDirection = direction;
+  inwardThetaOffset = startingTheta + endingTheta;
+  return(plotPolarFuncWithIncreasingTheta(&Equation_Sine, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+    &finalThetaFromLastPlot));
+}
 
 
 // ---------------------------------------------------------------------------------
@@ -1172,8 +1660,8 @@ int drawSunRays(boolean startEndPosition)
   // draw the figure
   //
   const float minRadiusMM = 24.0;
-  return(plotRadialFuncByRadius(&Equation_SunRays, (float) ballSpeedMMperSec, finalThetaFromLastPlot, numberOfRays, 
-    minRadiusMM, SANDBOX_MAX_RADIUS_MM,endpointSpacingMM, endpointSpacingTolerance, startEndPosition, 
+  return(plotRadialFuncByRadius(&Equation_SunRays, finalThetaFromLastPlot, numberOfRays, minRadiusMM, 
+    SANDBOX_MAX_RADIUS_MM,endpointSpacingMM, endpointSpacingTolerance, startEndPosition, 
     &finalThetaFromLastPlot));
 }
 
@@ -1204,8 +1692,8 @@ int drawHotSun(boolean startEndPosition)
   // draw the figure
   //
   const float minRadiusMM = 24.0;
-  return(plotRadialFuncByRadius(&Equation_SunRays, (float) ballSpeedMMperSec, finalThetaFromLastPlot, numberOfRays, 
-    minRadiusMM, SANDBOX_MAX_RADIUS_MM,endpointSpacingMM, endpointSpacingTolerance, startEndPosition, 
+  return(plotRadialFuncByRadius(&Equation_SunRays, finalThetaFromLastPlot, numberOfRays, minRadiusMM, 
+    SANDBOX_MAX_RADIUS_MM,endpointSpacingMM, endpointSpacingTolerance, startEndPosition, 
     &finalThetaFromLastPlot));
 }
 
@@ -1237,8 +1725,8 @@ int drawPsycho(boolean startEndPosition)
   // draw the figure
   //
   const float minRadiusMM = 24.0;
-  return(plotRadialFuncByRadius(&Equation_SunRays, (float) ballSpeedMMperSec, finalThetaFromLastPlot, numberOfRays, 
-    minRadiusMM, SANDBOX_MAX_RADIUS_MM,endpointSpacingMM, endpointSpacingTolerance, startEndPosition,
+  return(plotRadialFuncByRadius(&Equation_SunRays, finalThetaFromLastPlot, numberOfRays, minRadiusMM, 
+    SANDBOX_MAX_RADIUS_MM,endpointSpacingMM, endpointSpacingTolerance, startEndPosition,
     &finalThetaFromLastPlot));
 }
 
@@ -1269,8 +1757,8 @@ int drawSpiralRays(boolean startEndPosition)
   // draw the figure
   //
   const float minRadiusMM = 24.0;
-  return(plotRadialFuncByRadius(&Equation_SunRays, (float) ballSpeedMMperSec, finalThetaFromLastPlot, numberOfRays, 
-    minRadiusMM, SANDBOX_MAX_RADIUS_MM, endpointSpacingMM, endpointSpacingTolerance, startEndPosition,
+  return(plotRadialFuncByRadius(&Equation_SunRays, finalThetaFromLastPlot, numberOfRays, minRadiusMM, 
+    SANDBOX_MAX_RADIUS_MM, endpointSpacingMM, endpointSpacingTolerance, startEndPosition,
     &finalThetaFromLastPlot));
 }
 
@@ -1300,8 +1788,8 @@ int drawMoveSandInward(void)
 
   spiralDirection = SPIRAL_OUT;
   inwardThetaOffset = startingTheta + endingTheta;
-  if (plotPolarFuncWithIncreasingTheta(&Equation_Spiral, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-       startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
+  if (plotPolarFuncWithIncreasingTheta(&Equation_Spiral, finalThetaFromLastPlot, startingTheta, 
+       endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
        &finalThetaFromLastPlot) == CANCEL_DRAWING)
     return(CANCEL_DRAWING);
 
@@ -1317,8 +1805,8 @@ int drawMoveSandInward(void)
 
 //const float minRadiusMM = 50.0;
   const float minRadiusMM = 55.0;
-  return(plotRadialFuncByRadiusBackingUpOnSamePath(&Equation_SunRays, (float) ballSpeedMMperSec, finalThetaFromLastPlot,  
-    numberOfRays, minRadiusMM, SANDBOX_MAX_RADIUS_MM, endpointSpacingMM, endpointSpacingTolerance, START_OUT_END_OUT,
+  return(plotRadialFuncByRadiusBackingUpOnSamePath(&Equation_SunRays, finalThetaFromLastPlot, numberOfRays, 
+    minRadiusMM, SANDBOX_MAX_RADIUS_MM, endpointSpacingMM, endpointSpacingTolerance, START_OUT_END_OUT,
     &finalThetaFromLastPlot));
 }
 
@@ -1377,18 +1865,18 @@ int drawSixBlade(void)
   // draw the figure
   //
   absoluteStartingAngle = finalThetaFromLastPlot;
-  if (plotPolarXYFuncWithIncreasingTheta(Equation_Spirograph, (float) ballSpeedMMperSec, absoluteStartingAngle, 
-       startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, &finalThetaFromLastPlot) == CANCEL_DRAWING)
+  if (plotPolarXYFuncWithIncreasingTheta(Equation_Spirograph, absoluteStartingAngle, startingTheta, 
+       endingTheta, endpointSpacingMM, endpointSpacingTolerance, &finalThetaFromLastPlot) == CANCEL_DRAWING)
     return(CANCEL_DRAWING);
 
   absoluteStartingAngle -= 60.0;
-  if (plotPolarXYFuncWithIncreasingTheta(Equation_Spirograph, (float) ballSpeedMMperSec, absoluteStartingAngle, 
-      startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, &finalThetaFromLastPlot) == CANCEL_DRAWING)
+  if (plotPolarXYFuncWithIncreasingTheta(Equation_Spirograph, absoluteStartingAngle, startingTheta, 
+      endingTheta, endpointSpacingMM, endpointSpacingTolerance, &finalThetaFromLastPlot) == CANCEL_DRAWING)
     return(CANCEL_DRAWING);
     
   absoluteStartingAngle -= 60.0;
-  return(plotPolarXYFuncWithIncreasingTheta(Equation_Spirograph, (float) ballSpeedMMperSec, absoluteStartingAngle, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, &finalThetaFromLastPlot));
+  return(plotPolarXYFuncWithIncreasingTheta(Equation_Spirograph, absoluteStartingAngle, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, &finalThetaFromLastPlot));
 }
 
 
@@ -1419,8 +1907,8 @@ int drawLoops(void)
   //
   // draw the figure
   // 
-  return(plotPolarXYFuncWithIncreasingTheta(Equation_Spirograph, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, &finalThetaFromLastPlot));
+  return(plotPolarXYFuncWithIncreasingTheta(Equation_Spirograph, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, &finalThetaFromLastPlot));
 }
 
 
@@ -1451,8 +1939,8 @@ int drawPerimeterSkirt(void)
   //
   // draw the figure
   // 
-  return(plotPolarXYFuncWithIncreasingTheta(Equation_Spirograph, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, &finalThetaFromLastPlot));
+  return(plotPolarXYFuncWithIncreasingTheta(Equation_Spirograph, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, &finalThetaFromLastPlot));
 }
 
 
@@ -1509,7 +1997,7 @@ int drawNarrowingSpirograph(void)
   //
   // draw the figure
   // 
-  return(plotPolarXYFuncWithIncreasingTheta(Equation_NarrowingSpirograph, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
+  return(plotPolarXYFuncWithIncreasingTheta(Equation_NarrowingSpirograph, finalThetaFromLastPlot, 
     startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, &finalThetaFromLastPlot));
 }
 
@@ -1554,7 +2042,8 @@ int drawHearts(void)
   // set parameters for this drawing
   //
   spiralPitchMM = 14;
-  float startingTheta = 400;
+//float startingTheta = 600;
+  float startingTheta = 700;
 //float endingTheta = 7025;     // full size
   float endingTheta = 5930;     // smaller for skirt of loops
   float endpointSpacingMM = 2;
@@ -1564,8 +2053,8 @@ int drawHearts(void)
   //
   // draw the figure
   //
-  return(plotPolarXYFuncWithIncreasingTheta(Equation_Hearts, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
-    startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, &finalThetaFromLastPlot));
+  return(plotPolarXYFuncWithIncreasingTheta(Equation_Hearts, finalThetaFromLastPlot, startingTheta, 
+    endingTheta, endpointSpacingMM, endpointSpacingTolerance, &finalThetaFromLastPlot));
 }
 
 
@@ -1623,7 +2112,7 @@ int drawScalopsTripleTwist(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_ScalopsTripleTwist, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
+  return(plotPolarFuncWithIncreasingTheta(&Equation_ScalopsTripleTwist, finalThetaFromLastPlot, 
     startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
@@ -1662,7 +2151,7 @@ int drawScalopsTripleTwistClipped(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_ScalopsTripleTwist, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
+  return(plotPolarFuncWithIncreasingTheta(&Equation_ScalopsTripleTwist, finalThetaFromLastPlot, 
     startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }
@@ -1721,7 +2210,7 @@ int drawCloversTripleTwistClipped(boolean direction)
   //
   spiralDirection = direction;
   inwardThetaOffset = startingTheta + endingTheta;
-  return(plotPolarFuncWithIncreasingTheta(&Equation_CloversTripleTwist, (float) ballSpeedMMperSec, finalThetaFromLastPlot, 
+  return(plotPolarFuncWithIncreasingTheta(&Equation_CloversTripleTwist, finalThetaFromLastPlot, 
     startingTheta, endingTheta, endpointSpacingMM, endpointSpacingTolerance, clipPlotToSandboxRadiusFlag,
     &finalThetaFromLastPlot));
 }

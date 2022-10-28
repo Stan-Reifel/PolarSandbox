@@ -15,19 +15,18 @@
 // function declarations
 //
 int plotPolarFuncWithIncreasingTheta(float (*equation_PlotPolarFuncWithIncreasingTheta)(float),
-         float speed, float  beginAtAbsoluteTheta, float startingTheta, float endingTheta, 
-         float pointSpacingMM, float pointSpacingTolerance, boolean clipPlotToSandboxRadiusFlag,
-         float *finalAbsoluteTheta);
+         float  beginAtAbsoluteTheta, float startingTheta, float endingTheta, float pointSpacingMM, 
+         float pointSpacingTolerance, boolean clipPlotToSandboxRadiusFlag, float *finalAbsoluteTheta);
 
-int plotRadialFuncByRadius(float (*Equation_PlotRadialFuncByRadius)(float), float speed, 
-      float beginAtAbsoluteTheta, float DivisionsPerCircle, float StartingRadius, float EndingRadius, 
-      float pointSpacingMM, float pointSpacingTolerance, boolean startEndPosition, float *finalAbsoluteTheta);
+int plotRadialFuncByRadius(float (*Equation_PlotRadialFuncByRadius)(float), float beginAtAbsoluteTheta, 
+      float DivisionsPerCircle, float StartingRadius, float EndingRadius, float pointSpacingMM, 
+      float pointSpacingTolerance, boolean startEndPosition, float *finalAbsoluteTheta);
 
 int plotPolarXYFuncWithIncreasingTheta(void(*equation_PlotPolarXYFuncWithIncreasingTheta)(float, float*, float*),
-         float speed, float  beginAtAbsoluteTheta, float startingTheta, float endingTheta, float pointSpacingMM, 
+         float  beginAtAbsoluteTheta, float startingTheta, float endingTheta, float pointSpacingMM, 
          float pointSpacingTolerance, float *finalAbsoluteTheta);
 
-int plotRadialFuncByRadiusBackingUpOnSamePath(float (*Equation_PlotRadialFuncByRadius)(float), float speed, 
+int plotRadialFuncByRadiusBackingUpOnSamePath(float (*Equation_PlotRadialFuncByRadius)(float), 
       float beginAtAbsoluteTheta, float DivisionsPerCircle, float StartingRadius, float EndingRadius, 
       float pointSpacingMM, float pointSpacingTolerance, boolean startEndPosition, float *finalAbsoluteTheta);
 

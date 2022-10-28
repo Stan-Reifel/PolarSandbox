@@ -26,6 +26,9 @@ const int MOTOR_MICROSTEP_1_PIN = 6;
 const int MOTOR_MICROSTEP_2_PIN = 7;
 const int LED_LIGHTING_PIN      = 23;
 const int TEST_1_PIN            = 29;
+const int LCD_CS_PIN            = 10;
+const int LCD_DC_PIN            = 9;
+const int TOUCH_CS_PIN          = 8;
 
 
 //
